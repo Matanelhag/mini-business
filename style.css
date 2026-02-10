@@ -1,0 +1,191 @@
+/* --------------------------------------------------
+   בסיס
+-------------------------------------------------- */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  direction: rtl;
+  background: #f5f7fa;
+  color: #222;
+}
+
+h1, h2, h3 {
+  margin-bottom: 15px;
+}
+
+/* --------------------------------------------------
+   תפריט עליון
+-------------------------------------------------- */
+header {
+  background: #2563eb;
+  color: white;
+  padding: 15px 20px;
+}
+
+nav {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+nav button {
+  background: #1e40af;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+nav button:hover {
+  background: #1e3a8a;
+}
+
+/* --------------------------------------------------
+   מבנה מסכים
+-------------------------------------------------- */
+.section {
+  padding: 20px;
+}
+
+/* --------------------------------------------------
+   כפתורים
+-------------------------------------------------- */
+.primary-btn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.primary-btn:hover {
+  background: #1e4fc7;
+}
+
+.secondary-btn {
+  background: #e5e7eb;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.secondary-btn:hover {
+  background: #d1d5db;
+}
+
+.ghost-btn {
+  background: transparent;
+  border: 1px solid #aaa;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.small {
+  padding: 6px 10px !important;
+}
+
+/* --------------------------------------------------
+   פאנלים
+-------------------------------------------------- */
+.panel {
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+}
+
+/* --------------------------------------------------
+   טפסים
+-------------------------------------------------- */
+.form-panel {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.form-panel input,
+.form-panel select {
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+/* --------------------------------------------------
+   רשימות
+-------------------------------------------------- */
+.list-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.expense-item {
+  background: #fff;
+  border: 1px solid #ddd;
+  padding: 12px;
+  border-radius: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.expense-item button {
+  margin-left: 8px;
+}
+
+/* --------------------------------------------------
+   טבלאות
+-------------------------------------------------- */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+table th, table td {
+  padding: 10px;
+  border: 1px solid #ddd;
+}
+
+table th {
+  background: #2563eb;
+  color: white;
+}
+
+/* --------------------------------------------------
+   כרטיסי דשבורד
+-------------------------------------------------- */
+.cards {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.card {
+  flex: 1;
+  min-width: 200px;
+  text-align: center;
+}
+
+.card p {
+  font-size: 22px;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+/* --------------------------------------------------
+   גרפים
+-------------------------------------------------- */
+canvas {
+  margin-top: 25px;
+  background: white;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
