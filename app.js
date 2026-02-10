@@ -40,6 +40,10 @@ function showSection(id) {
   if (id === "dashboard") {
     updateDashboard();
   }
+
+  if (id === "income") {
+    renderIncomes();
+  }
 }
 
 // ------------------------------------------------------
@@ -361,21 +365,6 @@ function downloadCSV() {
   a.click();
 }
 
-function downloadPDF() {
-  let txt = "דוח עסק\n\n";
-
-  incomes.forEach(i => txt += `הכנסה: ${i.desc} — ${i.amount} ₪ (${i.date})\n`);
-  expenses.forEach(e => txt += `הוצאה: ${e.desc} — ${e.amount} ₪ (${e.date})\n`);
-
-  const blob = new Blob([txt], { type: "text/plain" });
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "report.txt";
-  a.click();
-}
-
 // ------------------------------------------------------
 // קטגוריות
 // ------------------------------------------------------
@@ -402,8 +391,41 @@ function renderCategoryManager() {
 }
 
 // ------------------------------------------------------
-// הפעלה ראשונית
+// הכנסות — חדש!
 // ------------------------------------------------------
-updateDashboard();
-renderInventory();
-renderPurchases();
+function saveIncome() {
+  const amount = Number(document.getElementById("incomeAmount").value);
+  const desc = document.getElementById("incomeDesc").value.trim();
+
+  if (!amount || !desc) {
+    alert("נא למלא את כל השדות");
+    return;
+  }
+
+  const income = {
+    id: Date.now(),
+    amount,
+    desc,
+    date: new Date().toLocaleDateString("he-IL")
+  };
+
+  incomes.push(income);
+  localStorage.setItem("incomes", JSON.stringify(incomes));
+
+  renderIncomes();
+  updateDashboard();
+}
+
+function renderIncomes() {
+  const list = document.getElementById("incomeList");
+  if (!list) return;
+
+  list.innerHTML = incomes.map(i => `
+    <div class="panel">
+      <p>${i.date} — ${i.desc}</p>
+      <p>${i.amount} ₪</p>
+    </div>
+  `).join("");
+}
+
+// ------------------------------------------------
