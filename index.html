@@ -27,6 +27,7 @@
     <nav>
       <button class="primary-btn" onclick="showSection('dashboard')">דשבורד</button>
       <button class="primary-btn" onclick="showSection('expenses')">הוצאות</button>
+      <button class="primary-btn" onclick="showSection('income')">הכנסות</button>
       <button class="primary-btn" onclick="showSection('inventory')">מלאי</button>
       <button class="primary-btn" onclick="showSection('purchases')">רכש</button>
       <button class="primary-btn" onclick="showSection('reports')">דוחות</button>
@@ -142,5 +143,16 @@
   </section>
 
   <script src="app.js"></script>
+  <section id="income" class="section" style="display:none;">
+  <h2>ניהול הכנסות</h2>
+
+  <div class="form-panel panel">
+    <input id="incomeAmount" type="number" placeholder="סכום">
+    <input id="incomeDesc" type="text" placeholder="תיאור">
+    <button class="primary-btn" onclick="saveIncome()">שמור</button>
+  </div>
+
+  <div id="incomeList" class="list-panel"></div>
+  </section>
 </body>
 </html>
