@@ -73,6 +73,22 @@ function createNewAccount() {
       loadAccounts();
     });
 }
+function openAccount(type) {
+  if (type === "business") {
+    showScreen("businessScreen");
+    document.getElementById("businessName").innerText = "חשבון עסק";
+  }
+
+  if (type === "home") {
+    showScreen("homeScreen");
+    document.getElementById("homeName").innerText = "חשבון משק בית";
+  }
+
+  if (type === "investments") {
+    showScreen("investScreen");
+    document.getElementById("investName").innerText = "חשבון השקעות";
+  }
+}
 // ------------------------------------------------------
 // משקי בית (Households) + נתונים ראשוניים
 // ------------------------------------------------------
