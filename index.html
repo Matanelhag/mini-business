@@ -75,6 +75,61 @@
 
     <button class="logout-btn" onclick="logoutUser()">התנתק</button>
   </section>
+<!-- מסך חשבון עסק -->
+<section id="businessScreen" class="screen" style="display:none;">
+  <h1>חשבון עסק</h1>
+  <p id="businessName"></p>
 
+  <div class="menu-grid">
+    <button onclick="openBusinessSection('dashboard')">דשבורד</button>
+    <button onclick="openBusinessSection('income')">הכנסות</button>
+    <button onclick="openBusinessSection('expenses')">הוצאות</button>
+    <button onclick="openBusinessSection('inventory')">מלאי</button>
+    <button onclick="openBusinessSection('purchases')">רכש</button>
+    <button onclick="openBusinessSection('reports')">דוחות</button>
+    <button onclick="openBusinessSection('settings')">הגדרות</button>
+  </div>
+
+  <div id="businessContent" class="content-panel"></div>
+
+  <button class="back-btn" onclick="showScreen('accountsScreen')">חזרה לחשבונות</button>
+</section>
+
+<!-- מסך חשבון משק בית -->
+<section id="homeScreen" class="screen" style="display:none;">
+  <h1>חשבון משק בית</h1>
+  <p id="homeName"></p>
+
+  <div class="menu-grid">
+    <button onclick="openHomeSection('dashboard')">דשבורד</button>
+    <button onclick="openHomeSection('income')">הכנסות</button>
+    <button onclick="openHomeSection('expenses')">הוצאות</button>
+    <button onclick="openHomeSection('households')">משקי בית פנימיים</button>
+    <button onclick="openHomeSection('reports')">דוחות</button>
+    <button onclick="openHomeSection('settings')">הגדרות</button>
+  </div>
+
+  <div id="homeContent" class="content-panel"></div>
+
+  <button class="back-btn" onclick="showScreen('accountsScreen')">חזרה לחשבונות</button>
+</section>
+
+<!-- מסך חשבון השקעות -->
+<section id="investScreen" class="screen" style="display:none;">
+  <h1>חשבון השקעות</h1>
+  <p id="investName"></p>
+
+  <div class="menu-grid">
+    <button onclick="openInvestSection('dashboard')">דשבורד</button>
+    <button onclick="openInvestSection('portfolio')">תיק השקעות</button>
+    <button onclick="openInvestSection('profits')">רווח/הפסד</button>
+    <button onclick="openInvestSection('reports')">דוחות</button>
+    <button onclick="openInvestSection('settings')">הגדרות</button>
+  </div>
+
+  <div id="investContent" class="content-panel"></div>
+
+  <button class="back-btn" onclick="showScreen('accountsScreen')">חזרה לחשבונות</button>
+</section>
 </body>
 </html>
