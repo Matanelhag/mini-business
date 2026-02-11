@@ -1,12 +1,27 @@
 // ------------------------------------------------------
-// נתונים ראשוניים
+// משקי בית (Households) + נתונים ראשוניים
 // ------------------------------------------------------
-let incomes = JSON.parse(localStorage.getItem("incomes") || "[]");
-let expenses = JSON.parse(localStorage.getItem("expenses") || "[]");
-let inventory = JSON.parse(localStorage.getItem("inventory") || "[]");
-let purchases = JSON.parse(localStorage.getItem("purchases") || "[]");
+let households = JSON.parse(localStorage.getItem("households") || "[]");
+let currentHousehold = localStorage.getItem("currentHousehold") || null;
 
-let categories = JSON.parse(localStorage.getItem("categories") || "[]");
+if (households.length === 0) {
+  households = ["ברירת מחדל"];
+  currentHousehold = "ברירת מחדל";
+  localStorage.setItem("households", JSON.stringify(households));
+  localStorage.setItem("currentHousehold", currentHousehold);
+}
+
+function keyFor(name) {
+  return `${name}_${currentHousehold}`;
+}
+
+let incomes = JSON.parse(localStorage.getItem(keyFor("incomes")) || "[]");
+let expenses = JSON.parse(localStorage.getItem(keyFor("expenses")) || "[]");
+let inventory = JSON.parse(localStorage.getItem(keyFor("inventory")) || "[]");
+let purchases = JSON.parse(localStorage.getItem(keyFor("purchases")) || "[]");
+
+let categories = JSON.parse(localStorage.getItem(keyFor("categories")) || "[]");
+let incomeCategories = JSON.parse(localStorage.getItem(keyFor("incomeCategories")) || "[]");
 
 if (categories.length === 0) {
   categories = [
@@ -16,10 +31,69 @@ if (categories.length === 0) {
     { name: "כללי", sub: ["הוצאות משרד", "קניות", "שונות"] },
     { name: "אחר", sub: ["אחר"] }
   ];
-  localStorage.setItem("categories", JSON.stringify(categories));
+  localStorage.setItem(keyFor("categories"), JSON.stringify(categories));
+}
+
+if (incomeCategories.length === 0) {
+  incomeCategories = [
+    { name: "מכירות", sub: ["מוצרים", "שירותים", "אונליין", "אופליין"] },
+    { name: "עמלות", sub: ["שותפים", "אפיקים חיצוניים"] },
+    { name: "החזרי מס", sub: ["מע״מ", "מס הכנסה"] },
+    { name: "אחר", sub: ["אחר"] }
+  ];
+  localStorage.setItem(keyFor("incomeCategories"), JSON.stringify(incomeCategories));
 }
 
 let editingExpenseId = null;
+
+// גרפים
+let incomeChartInstance = null;
+let expenseChartInstance = null;
+let categoryChartInstance = null;
+let subCategoryChartInstance = null;
+
+// ------------------------------------------------------
+// עזר: שמירה/טעינה לפי משק בית
+// ------------------------------------------------------
+function reloadDataForCurrentHousehold() {
+  incomes = JSON.parse(localStorage.getItem(keyFor("incomes")) || "[]");
+  expenses = JSON.parse(localStorage.getItem(keyFor("expenses")) || "[]");
+  inventory = JSON.parse(localStorage.getItem(keyFor("inventory")) || "[]");
+  purchases = JSON.parse(localStorage.getItem(keyFor("purchases")) || "[]");
+  categories = JSON.parse(localStorage.getItem(keyFor("categories")) || "[]");
+  incomeCategories = JSON.parse(localStorage.getItem(keyFor("incomeCategories")) || "[]");
+
+  if (categories.length === 0) {
+    categories = [
+      { name: "שיווק ומכירות", sub: ["פרסום", "פייסבוק", "גוגל", "פליירים", "עמלות מכירה"] },
+      { name: "תפעול", sub: ["דלק", "תחזוקה", "ציוד", "שכירות"] },
+      { name: "שכר", sub: ["עובד 1", "עובד 2", "בונוסים"] },
+      { name: "כללי", sub: ["הוצאות משרד", "קניות", "שונות"] },
+      { name: "אחר", sub: ["אחר"] }
+    ];
+    localStorage.setItem(keyFor("categories"), JSON.stringify(categories));
+  }
+
+  if (incomeCategories.length === 0) {
+    incomeCategories = [
+      { name: "מכירות", sub: ["מוצרים", "שירותים", "אונליין", "אופליין"] },
+      { name: "עמלות", sub: ["שותפים", "אפיקים חיצוניים"] },
+      { name: "החזרי מס", sub: ["מע״מ", "מס הכנסה"] },
+      { name: "אחר", sub: ["אחר"] }
+    ];
+    localStorage.setItem(keyFor("incomeCategories"), JSON.stringify(incomeCategories));
+  }
+
+  updateHouseholdUI();
+  updateCategorySelects();
+  updateIncomeCategorySelects();
+  updateDashboard();
+  renderExpenses();
+  renderIncomes();
+  renderInventory();
+  renderPurchases();
+  renderCategoryManager();
+}
 
 // ------------------------------------------------------
 // ניווט בין מסכים
@@ -42,8 +116,65 @@ function showSection(id) {
   }
 
   if (id === "income") {
+    updateIncomeCategorySelects();
     renderIncomes();
   }
+
+  if (id === "households") {
+    updateHouseholdUI();
+  }
+
+  if (id === "reports") {
+    // אפשר להוסיף לוגיקה אם צריך
+  }
+}
+
+// ------------------------------------------------------
+// משקי בית
+// ------------------------------------------------------
+function updateHouseholdUI() {
+  const label = document.getElementById("currentHouseholdLabel");
+  if (label) label.innerText = currentHousehold || "לא נבחר";
+
+  const select = document.getElementById("householdSelect");
+  if (select) {
+    select.innerHTML = households.map(h => `<option value="${h}" ${h === currentHousehold ? "selected" : ""}>${h}</option>`).join("");
+  }
+
+  const list = document.getElementById("householdList");
+  if (list) {
+    list.innerHTML = households.map(h => `
+      <div class="panel">
+        <p>${h}</p>
+      </div>
+    `).join("");
+  }
+}
+
+function addHousehold() {
+  const nameInput = document.getElementById("newHouseholdName");
+  const name = nameInput.value.trim();
+  if (!name) return;
+
+  if (!households.includes(name)) {
+    households.push(name);
+    localStorage.setItem("households", JSON.stringify(households));
+  }
+
+  currentHousehold = name;
+  localStorage.setItem("currentHousehold", currentHousehold);
+
+  nameInput.value = "";
+  reloadDataForCurrentHousehold();
+}
+
+function changeHousehold() {
+  const select = document.getElementById("householdSelect");
+  if (!select) return;
+
+  currentHousehold = select.value;
+  localStorage.setItem("currentHousehold", currentHousehold);
+  reloadDataForCurrentHousehold();
 }
 
 // ------------------------------------------------------
@@ -66,7 +197,7 @@ function saveExpense() {
     desc,
     category,
     sub,
-    date: new Date().toLocaleDateString("he-IL")
+    date: new Date().toISOString()
   };
 
   if (editingExpenseId) {
@@ -76,7 +207,7 @@ function saveExpense() {
     expenses.push(expense);
   }
 
-  localStorage.setItem("expenses", JSON.stringify(expenses));
+  localStorage.setItem(keyFor("expenses"), JSON.stringify(expenses));
   renderExpenses();
   updateDashboard();
 }
@@ -91,19 +222,23 @@ function renderExpenses() {
   const filterCat = document.getElementById("filterCategory").value;
   const filterSub = document.getElementById("filterSubCategory").value;
 
-  let filtered = expenses;
+  let filtered = expenses.slice();
 
   if (filterCat !== "all") filtered = filtered.filter(e => e.category === filterCat);
   if (filterSub !== "all") filtered = filtered.filter(e => e.sub === filterSub);
 
-  list.innerHTML = filtered.map(e => `
-    <div class="expense-item panel">
-      <p>${e.date} — ${e.desc} (${e.category} / ${e.sub})</p>
-      <p>${e.amount} ₪</p>
-      <button class="ghost-btn small" onclick="editExpense(${e.id})">ערוך</button>
-      <button class="ghost-btn small" onclick="deleteExpense(${e.id})">מחק</button>
-    </div>
-  `).join("");
+  list.innerHTML = filtered.map(e => {
+    const d = new Date(e.date);
+    const dateStr = d.toLocaleDateString("he-IL");
+    return `
+      <div class="expense-item panel">
+        <p>${dateStr} — ${e.desc} (${e.category} / ${e.sub})</p>
+        <p>${e.amount} ₪</p>
+        <button class="ghost-btn small" onclick="editExpense(${e.id})">ערוך</button>
+        <button class="ghost-btn small" onclick="deleteExpense(${e.id})">מחק</button>
+      </div>
+    `;
+  }).join("");
 
   renderCategorySummary();
 }
@@ -132,37 +267,45 @@ function deleteExpense(id) {
   if (!confirm("למחוק הוצאה זו?")) return;
 
   expenses = expenses.filter(e => e.id !== id);
-  localStorage.setItem("expenses", JSON.stringify(expenses));
+  localStorage.setItem(keyFor("expenses"), JSON.stringify(expenses));
 
   renderExpenses();
   updateDashboard();
 }
 
 // ------------------------------------------------------
-// עדכון רשימות קטגוריות
+// עדכון רשימות קטגוריות (הוצאות)
 // ------------------------------------------------------
 function updateCategorySelects() {
   const catSelect = document.getElementById("expenseCategory");
   const filterCat = document.getElementById("filterCategory");
   const filterSub = document.getElementById("filterSubCategory");
 
-  catSelect.innerHTML = categories.map(c => `<option value="${c.name}">${c.name}</option>`).join("");
+  if (catSelect) {
+    catSelect.innerHTML = categories.map(c => `<option value="${c.name}">${c.name}</option>`).join("");
+  }
 
-  filterCat.innerHTML = `<option value="all">הכול</option>` +
-    categories.map(c => `<option value="${c.name}">${c.name}</option>`).join("");
+  if (filterCat) {
+    filterCat.innerHTML = `<option value="all">הכול</option>` +
+      categories.map(c => `<option value="${c.name}">${c.name}</option>`).join("");
+  }
 
-  updateSubCategorySelect("expenseSubCategory", catSelect.value);
+  if (catSelect) {
+    updateSubCategorySelect("expenseSubCategory", catSelect.value);
+  }
 
-  filterSub.innerHTML = `<option value="all">הכול</option>`;
+  if (filterSub) {
+    filterSub.innerHTML = `<option value="all">הכול</option>`;
+  }
 }
 
 // ------------------------------------------------------
-// עדכון תתי־קטגוריות
+// עדכון תתי־קטגוריות (הוצאות)
 // ------------------------------------------------------
 function updateSubCategorySelect(selectId, categoryName) {
   const select = document.getElementById(selectId);
   const cat = categories.find(c => c.name === categoryName);
-  if (!cat) return;
+  if (!select || !cat) return;
 
   select.innerHTML = cat.sub.map(s => `<option value="${s}">${s}</option>`).join("");
 }
@@ -194,37 +337,59 @@ function renderCategorySummary() {
 }
 
 // ------------------------------------------------------
-// דשבורד
+// דשבורד + סינון לפי חודש/שנה
 // ------------------------------------------------------
+function filterByMonthYear(list, month, year) {
+  return list.filter(item => {
+    const d = new Date(item.date);
+    const m = d.getMonth() + 1;
+    const y = d.getFullYear();
+
+    if (month !== "all" && Number(month) !== m) return false;
+    if (year && Number(year) !== y) return false;
+    return true;
+  });
+}
+
 function updateDashboard() {
-  const totalIncome = incomes.reduce((sum, i) => sum + i.amount, 0);
-  const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const month = document.getElementById("dashboardMonth")?.value || "all";
+  const year = document.getElementById("dashboardYear")?.value || "";
+
+  const filteredIncomes = filterByMonthYear(incomes, month, year);
+  const filteredExpenses = filterByMonthYear(expenses, month, year);
+
+  const totalIncome = filteredIncomes.reduce((sum, i) => sum + i.amount, 0);
+  const totalExpenses = filteredExpenses.reduce((sum, e) => sum + e.amount, 0);
   const profit = totalIncome - totalExpenses;
 
   document.getElementById("cardIncome").innerText = totalIncome + " ₪";
   document.getElementById("cardExpenses").innerText = totalExpenses + " ₪";
   document.getElementById("cardProfit").innerText = profit + " ₪";
 
-  drawIncomeChart();
-  drawExpenseChart();
-  drawCategoryChart();
-  drawSubCategoryChart();
+  drawIncomeChart(filteredIncomes);
+  drawExpenseChart(filteredExpenses);
+  drawCategoryChart(filteredExpenses);
+  drawSubCategoryChart(filteredExpenses);
 }
 
 // ------------------------------------------------------
 // גרפים
 // ------------------------------------------------------
-function drawIncomeChart() {
+function drawIncomeChart(data) {
   const ctx = document.getElementById("incomeChart");
   if (!ctx) return;
 
-  new Chart(ctx, {
+  if (incomeChartInstance) {
+    incomeChartInstance.destroy();
+  }
+
+  incomeChartInstance = new Chart(ctx, {
     type: "line",
     data: {
-      labels: incomes.map(i => i.date),
+      labels: data.map(i => new Date(i.date).toLocaleDateString("he-IL")),
       datasets: [{
         label: "הכנסות",
-        data: incomes.map(i => i.amount),
+        data: data.map(i => i.amount),
         borderColor: "green",
         fill: false
       }]
@@ -232,17 +397,21 @@ function drawIncomeChart() {
   });
 }
 
-function drawExpenseChart() {
+function drawExpenseChart(data) {
   const ctx = document.getElementById("expenseChart");
   if (!ctx) return;
 
-  new Chart(ctx, {
+  if (expenseChartInstance) {
+    expenseChartInstance.destroy();
+  }
+
+  expenseChartInstance = new Chart(ctx, {
     type: "line",
     data: {
-      labels: expenses.map(e => e.date),
+      labels: data.map(e => new Date(e.date).toLocaleDateString("he-IL")),
       datasets: [{
         label: "הוצאות",
-        data: expenses.map(e => e.amount),
+        data: data.map(e => e.amount),
         borderColor: "red",
         fill: false
       }]
@@ -250,14 +419,18 @@ function drawExpenseChart() {
   });
 }
 
-function drawCategoryChart() {
+function drawCategoryChart(data) {
   const ctx = document.getElementById("categoryChart");
   if (!ctx) return;
 
-  const totals = {};
-  expenses.forEach(e => totals[e.category] = (totals[e.category] || 0) + e.amount);
+  if (categoryChartInstance) {
+    categoryChartInstance.destroy();
+  }
 
-  new Chart(ctx, {
+  const totals = {};
+  data.forEach(e => totals[e.category] = (totals[e.category] || 0) + e.amount);
+
+  categoryChartInstance = new Chart(ctx, {
     type: "bar",
     data: {
       labels: Object.keys(totals),
@@ -270,14 +443,18 @@ function drawCategoryChart() {
   });
 }
 
-function drawSubCategoryChart() {
+function drawSubCategoryChart(data) {
   const ctx = document.getElementById("subCategoryChart");
   if (!ctx) return;
 
-  const totals = {};
-  expenses.forEach(e => totals[e.sub] = (totals[e.sub] || 0) + e.amount);
+  if (subCategoryChartInstance) {
+    subCategoryChartInstance.destroy();
+  }
 
-  new Chart(ctx, {
+  const totals = {};
+  data.forEach(e => totals[e.sub] = (totals[e.sub] || 0) + e.amount);
+
+  subCategoryChartInstance = new Chart(ctx, {
     type: "bar",
     data: {
       labels: Object.keys(totals),
@@ -300,7 +477,7 @@ function addItem() {
   if (!name || !qty) return;
 
   inventory.push({ name, qty });
-  localStorage.setItem("inventory", JSON.stringify(inventory));
+  localStorage.setItem(keyFor("inventory"), JSON.stringify(inventory));
 
   renderInventory();
 }
@@ -321,8 +498,8 @@ function addPurchase() {
 
   if (!item || !qty) return;
 
-  purchases.push({ item, qty, date: new Date().toLocaleDateString("he-IL") });
-  localStorage.setItem("purchases", JSON.stringify(purchases));
+  purchases.push({ item, qty, date: new Date().toISOString() });
+  localStorage.setItem(keyFor("purchases"), JSON.stringify(purchases));
 
   renderPurchases();
 }
@@ -331,7 +508,9 @@ function renderPurchases() {
   const list = document.getElementById("purchaseList");
   if (!list) return;
 
-  list.innerHTML = purchases.map(p => `<p>${p.date} — ${p.item}: ${p.qty}</p>`).join("");
+  list.innerHTML = purchases.map(p => `
+    <p>${new Date(p.date).toLocaleDateString("he-IL")} — ${p.item}: ${p.qty}</p>
+  `).join("");
 }
 
 // ------------------------------------------------------
@@ -341,20 +520,58 @@ function showReports() {
   const div = document.getElementById("reportContent");
   if (!div) return;
 
-  div.innerHTML = `
-    <h3>הכנסות</h3>
-    ${incomes.map(i => `<p>${i.date} — ${i.desc}: ${i.amount} ₪</p>`).join("")}
+  const month = document.getElementById("reportMonth").value;
+  const year = document.getElementById("reportYear").value;
+  const type = document.getElementById("reportType").value;
 
-    <h3>הוצאות</h3>
-    ${expenses.map(e => `<p>${e.date} — ${e.desc}: ${e.amount} ₪</p>`).join("")}
-  `;
+  const filteredIncomes = filterByMonthYear(incomes, month, year);
+  const filteredExpenses = filterByMonthYear(expenses, month, year);
+
+  if (type === "summary") {
+    const totalIncome = filteredIncomes.reduce((s, i) => s + i.amount, 0);
+    const totalExpenses = filteredExpenses.reduce((s, e) => s + e.amount, 0);
+    const profit = totalIncome - totalExpenses;
+
+    div.innerHTML = `
+      <h3>סיכום הכנסות/הוצאות</h3>
+      <p>סה״כ הכנסות: ${totalIncome} ₪</p>
+      <p>סה״כ הוצאות: ${totalExpenses} ₪</p>
+      <p>רווח נקי: ${profit} ₪</p>
+    `;
+  } else if (type === "categories") {
+    const catTotals = {};
+    filteredExpenses.forEach(e => {
+      catTotals[e.category] = (catTotals[e.category] || 0) + e.amount;
+    });
+
+    div.innerHTML = `
+      <h3>סיכום לפי קטגוריות</h3>
+      ${Object.entries(catTotals).map(([cat, total]) => `<p>${cat}: ${total} ₪</p>`).join("")}
+    `;
+  } else if (type === "cashflow") {
+    const all = [
+      ...filteredIncomes.map(i => ({ type: "הכנסה", amount: i.amount, date: i.date, desc: i.desc })),
+      ...filteredExpenses.map(e => ({ type: "הוצאה", amount: e.amount, date: e.date, desc: e.desc }))
+    ].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    div.innerHTML = `
+      <h3>תזרים מזומנים</h3>
+      ${all.map(r => `
+        <p>${new Date(r.date).toLocaleDateString("he-IL")} — ${r.type}: ${r.desc} — ${r.amount} ₪</p>
+      `).join("")}
+    `;
+  }
 }
 
 function downloadCSV() {
-  let csv = "סוג,תיאור,סכום,תאריך\n";
+  let csv = "סוג,תיאור,סכום,תאריך,קטגוריה,תת קטגוריה\n";
 
-  incomes.forEach(i => csv += `הכנסה,${i.desc},${i.amount},${i.date}\n`);
-  expenses.forEach(e => csv += `הוצאה,${e.desc},${e.amount},${e.date}\n`);
+  incomes.forEach(i => {
+    csv += `הכנסה,${i.desc},${i.amount},${new Date(i.date).toLocaleDateString("he-IL")},${i.category || ""},${i.sub || ""}\n`;
+  });
+  expenses.forEach(e => {
+    csv += `הוצאה,${e.desc},${e.amount},${new Date(e.date).toLocaleDateString("he-IL")},${e.category},${e.sub}\n`;
+  });
 
   const blob = new Blob([csv], { type: "text/csv" });
   const url = URL.createObjectURL(blob);
@@ -365,17 +582,37 @@ function downloadCSV() {
   a.click();
 }
 
+function downloadTXT() {
+  let txt = "דוח עסק\n\n";
+
+  incomes.forEach(i => {
+    txt += `הכנסה: ${i.desc} — ${i.amount} ₪ (${new Date(i.date).toLocaleDateString("he-IL")})\n`;
+  });
+  expenses.forEach(e => {
+    txt += `הוצאה: ${e.desc} — ${e.amount} ₪ (${new Date(e.date).toLocaleDateString("he-IL")})\n`;
+  });
+
+  const blob = new Blob([txt], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "report.txt";
+  a.click();
+}
+
 // ------------------------------------------------------
-// קטגוריות
+// קטגוריות (הוצאות)
 // ------------------------------------------------------
 function addCategory() {
   const name = document.getElementById("newCategoryName").value.trim();
   if (!name) return;
 
   categories.push({ name, sub: [] });
-  localStorage.setItem("categories", JSON.stringify(categories));
+  localStorage.setItem(keyFor("categories"), JSON.stringify(categories));
 
   renderCategoryManager();
+  updateCategorySelects();
 }
 
 function renderCategoryManager() {
@@ -391,13 +628,34 @@ function renderCategoryManager() {
 }
 
 // ------------------------------------------------------
-// הכנסות — חדש!
+// הכנסות — קטגוריות ותתי־קטגוריות
 // ------------------------------------------------------
+function updateIncomeCategorySelects() {
+  const catSelect = document.getElementById("incomeCategory");
+  const subSelect = document.getElementById("incomeSubCategory");
+  if (!catSelect || !subSelect) return;
+
+  catSelect.innerHTML = incomeCategories.map(c => `<option value="${c.name}">${c.name}</option>`).join("");
+
+  const firstCat = incomeCategories[0];
+  if (firstCat) {
+    subSelect.innerHTML = firstCat.sub.map(s => `<option value="${s}">${s}</option>`).join("");
+  }
+
+  catSelect.onchange = () => {
+    const cat = incomeCategories.find(c => c.name === catSelect.value);
+    if (!cat) return;
+    subSelect.innerHTML = cat.sub.map(s => `<option value="${s}">${s}</option>`).join("");
+  };
+}
+
 function saveIncome() {
   const amount = Number(document.getElementById("incomeAmount").value);
   const desc = document.getElementById("incomeDesc").value.trim();
+  const category = document.getElementById("incomeCategory").value;
+  const sub = document.getElementById("incomeSubCategory").value;
 
-  if (!amount || !desc) {
+  if (!amount || !desc || !category || !sub) {
     alert("נא למלא את כל השדות");
     return;
   }
@@ -406,11 +664,13 @@ function saveIncome() {
     id: Date.now(),
     amount,
     desc,
-    date: new Date().toLocaleDateString("he-IL")
+    category,
+    sub,
+    date: new Date().toISOString()
   };
 
   incomes.push(income);
-  localStorage.setItem("incomes", JSON.stringify(incomes));
+  localStorage.setItem(keyFor("incomes"), JSON.stringify(incomes));
 
   renderIncomes();
   updateDashboard();
@@ -422,10 +682,14 @@ function renderIncomes() {
 
   list.innerHTML = incomes.map(i => `
     <div class="panel">
-      <p>${i.date} — ${i.desc}</p>
+      <p>${new Date(i.date).toLocaleDateString("he-IL")} — ${i.desc} (${i.category} / ${i.sub})</p>
       <p>${i.amount} ₪</p>
     </div>
   `).join("");
 }
 
-// ------------------------------------------------
+// ------------------------------------------------------
+// הפעלה ראשונית
+// ------------------------------------------------------
+reloadDataForCurrentHousehold();
+showSection("dashboard");
