@@ -103,6 +103,25 @@ function openBusinessSection(section) {
   if (section === "income") loadBusinessIncome();
   if (section === "expenses") loadBusinessExpenses();
 }
+function saveBusinessIncome() {
+  const amount = Number(document.getElementById("bizIncomeAmount").value);
+  const desc = document.getElementById("bizIncomeDesc").value;
+
+  const user = auth.currentUser;
+  if (!user) return;
+
+  db.collection("users")
+    .doc(user.uid)
+    .collection("accounts")
+    .doc("business") // בהמשך נחליף ל-ID אמיתי
+    .collection("incomes")
+    .add({
+      amount,
+      desc,
+      date: new Date().toISOString()
+    })
+    .then(() => loadBusinessIncome());
+}
 // ------------------------------------------------------
 // משקי בית (Households) + נתונים ראשוניים
 // ------------------------------------------------------
