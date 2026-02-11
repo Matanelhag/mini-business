@@ -1,3 +1,39 @@
+function showScreen(id) {
+  document.querySelectorAll(".screen").forEach(s => s.style.display = "none");
+  document.getElementById(id).style.display = "block";
+}
+function registerUser() {
+  const email = document.getElementById("registerEmail").value;
+  const pass = document.getElementById("registerPassword").value;
+
+  auth.createUserWithEmailAndPassword(email, pass)
+    .then(() => showScreen("accountsScreen"))
+    .catch(err => alert(err.message));
+}
+
+function loginUser() {
+  const email = document.getElementById("loginEmail").value;
+  const pass = document.getElementById("loginPassword").value;
+
+  auth.signInWithEmailAndPassword(email, pass)
+    .then(() => {
+      loadAccounts();
+      showScreen("accountsScreen");
+    })
+    .catch(err => alert(err.message));
+}
+
+function resetPassword() {
+  const email = document.getElementById("resetEmail").value;
+
+  auth.sendPasswordResetEmail(email)
+    .then(() => alert("נשלח קישור שחזור"))
+    .catch(err => alert(err.message));
+}
+
+function logoutUser() {
+  auth.signOut().then(() => showScreen("loginScreen"));
+}
 // ------------------------------------------------------
 // משקי בית (Households) + נתונים ראשוניים
 // ------------------------------------------------------
