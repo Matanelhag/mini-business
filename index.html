@@ -3,252 +3,78 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>מערכת ניהול עסק</title>
+  <title>ניהול חיים — עסק | בית | השקעות</title>
 
   <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- חובה כדי שהאפליקציה תותקן -->
-  <link rel="manifest" href="manifest.json">
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
 
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js')
-        .catch(err => console.log("SW error:", err));
-    }
-  </script>
+  <script src="firebase.js"></script>
+  <script src="app.js" defer></script>
 </head>
 
 <body>
 
-  <!-- תפריט עליון -->
-  <header>
-    <h1>מערכת ניהול עסק</h1>
-    <nav>
-      <button class="primary-btn" onclick="showSection('dashboard')">דשבורד</button>
-      <button class="primary-btn" onclick="showSection('income')">הכנסות</button>
-      <button class="primary-btn" onclick="showSection('expenses')">הוצאות</button>
-      <button class="primary-btn" onclick="showSection('inventory')">מלאי</button>
-      <button class="primary-btn" onclick="showSection('purchases')">רכש</button>
-      <button class="primary-btn" onclick="showSection('reports')">דוחות</button>
-      <button class="primary-btn" onclick="showSection('categories')">קטגוריות</button>
-      <button class="secondary-btn" onclick="showSection('households')">משקי בית</button>
-    </nav>
-  </header>
+  <!-- מסך התחברות -->
+  <section id="loginScreen" class="screen">
+    <h1>ברוך הבא</h1>
+    <input id="loginEmail" type="email" placeholder="אימייל">
+    <input id="loginPassword" type="password" placeholder="סיסמה">
+    <button onclick="loginUser()">התחבר</button>
+    <p onclick="showScreen('registerScreen')" class="link">אין לך חשבון? הירשם</p>
+    <p onclick="showScreen('resetScreen')" class="link">שכחת סיסמה?</p>
+  </section>
 
-  <!-- דשבורד -->
-  <section id="dashboard" class="section">
-    <h2>דשבורד</h2>
+  <!-- מסך הרשמה -->
+  <section id="registerScreen" class="screen" style="display:none;">
+    <h1>הרשמה</h1>
+    <input id="registerEmail" type="email" placeholder="אימייל">
+    <input id="registerPassword" type="password" placeholder="סיסמה">
+    <button onclick="registerUser()">צור חשבון</button>
+    <p onclick="showScreen('loginScreen')" class="link">כבר יש לך חשבון? התחבר</p>
+  </section>
 
-    <div class="panel">
-      <h3>משק בית נוכחי</h3>
-      <p id="currentHouseholdLabel"></p>
-    </div>
+  <!-- מסך שחזור סיסמה -->
+  <section id="resetScreen" class="screen" style="display:none;">
+    <h1>שחזור סיסמה</h1>
+    <input id="resetEmail" type="email" placeholder="אימייל">
+    <button onclick="resetPassword()">שלח קישור שחזור</button>
+    <p onclick="showScreen('loginScreen')" class="link">חזרה להתחברות</p>
+  </section>
 
-    <div class="form-panel panel">
-      <h3>סינון לפי חודש ושנה</h3>
-      <label>חודש:
-        <select id="dashboardMonth" onchange="updateDashboard()">
-          <option value="all">הכול</option>
-          <option value="1">ינואר</option>
-          <option value="2">פברואר</option>
-          <option value="3">מרץ</option>
-          <option value="4">אפריל</option>
-          <option value="5">מאי</option>
-          <option value="6">יוני</option>
-          <option value="7">יולי</option>
-          <option value="8">אוגוסט</option>
-          <option value="9">ספטמבר</option>
-          <option value="10">אוקטובר</option>
-          <option value="11">נובמבר</option>
-          <option value="12">דצמבר</option>
-        </select>
-      </label>
-      <label>שנה:
-        <input id="dashboardYear" type="number" placeholder="למשל 2025" onchange="updateDashboard()">
-      </label>
-    </div>
+  <!-- מסך חשבונות (אייקונים צבעוניים) -->
+  <section id="accountsScreen" class="screen" style="display:none;">
+    <h1>החשבונות שלי</h1>
 
-    <div class="cards">
-      <div class="card panel">
-        <h3>סה״כ הכנסות</h3>
-        <p id="cardIncome">0 ₪</p>
+    <div class="account-grid">
+
+      <div class="account-card business" onclick="openAccount('business')">
+        <div class="icon">🏢</div>
+        <h3>עסק</h3>
       </div>
 
-      <div class="card panel">
-        <h3>סה״כ הוצאות</h3>
-        <p id="cardExpenses">0 ₪</p>
+      <div class="account-card home" onclick="openAccount('home')">
+        <div class="icon">🏠</div>
+        <h3>משק בית</h3>
       </div>
 
-      <div class="card panel">
-        <h3>רווח נקי</h3>
-        <p id="cardProfit">0 ₪</p>
+      <div class="account-card invest" onclick="openAccount('investments')">
+        <div class="icon">📈</div>
+        <h3>השקעות</h3>
       </div>
+
+      <div class="account-card new" onclick="createNewAccount()">
+        <div class="icon">➕</div>
+        <h3>חשבון חדש</h3>
+      </div>
+
     </div>
 
-    <div class="panel">
-      <h3>גרף הכנסות</h3>
-      <canvas id="incomeChart"></canvas>
-    </div>
-
-    <div class="panel">
-      <h3>גרף הוצאות</h3>
-      <canvas id="expenseChart"></canvas>
-    </div>
-
-    <div class="panel">
-      <h3>סה״כ לפי קטגוריה</h3>
-      <canvas id="categoryChart"></canvas>
-    </div>
-
-    <div class="panel">
-      <h3>סה״כ לפי תת־קטגוריה</h3>
-      <canvas id="subCategoryChart"></canvas>
-    </div>
+    <button class="logout-btn" onclick="logoutUser()">התנתק</button>
   </section>
 
-  <!-- הכנסות -->
-  <section id="income" class="section" style="display:none;">
-    <h2>ניהול הכנסות</h2>
-
-    <div class="form-panel panel">
-      <input id="incomeAmount" type="number" placeholder="סכום">
-      <input id="incomeDesc" type="text" placeholder="תיאור">
-      <select id="incomeCategory"></select>
-      <select id="incomeSubCategory"></select>
-      <button class="primary-btn" onclick="saveIncome()">שמור</button>
-    </div>
-
-    <div id="incomeList" class="list-panel"></div>
-  </section>
-
-  <!-- הוצאות -->
-  <section id="expenses" class="section" style="display:none;">
-    <h2>ניהול הוצאות</h2>
-
-    <div class="form-panel panel">
-      <input id="expenseAmount" type="number" placeholder="סכום">
-      <input id="expenseDesc" type="text" placeholder="תיאור">
-      <select id="expenseCategory" onchange="updateSubCategorySelect('expenseSubCategory', this.value)"></select>
-      <select id="expenseSubCategory"></select>
-      <button class="primary-btn" onclick="saveExpense()">שמור</button>
-    </div>
-
-    <h3>סינון</h3>
-    <select id="filterCategory" onchange="renderExpenses()"></select>
-    <select id="filterSubCategory" onchange="renderExpenses()"></select>
-
-    <div id="expenseList" class="list-panel"></div>
-
-    <h3>סיכום לפי קטגוריות</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>קטגוריה</th>
-          <th>תת־קטגוריה</th>
-          <th>סה״כ</th>
-        </tr>
-      </thead>
-      <tbody id="categorySummaryBody"></tbody>
-    </table>
-  </section>
-
-  <!-- מלאי -->
-  <section id="inventory" class="section" style="display:none;">
-    <h2>מלאי</h2>
-
-    <div class="form-panel panel">
-      <input id="itemName" type="text" placeholder="שם מוצר">
-      <input id="itemQty" type="number" placeholder="כמות">
-      <button class="primary-btn" onclick="addItem()">הוסף</button>
-    </div>
-
-    <div id="inventoryList" class="list-panel"></div>
-  </section>
-
-  <!-- רכש -->
-  <section id="purchases" class="section" style="display:none;">
-    <h2>רכש</h2>
-
-    <div class="form-panel panel">
-      <input id="purchaseItem" type="text" placeholder="מוצר">
-      <input id="purchaseQty" type="number" placeholder="כמות">
-      <button class="primary-btn" onclick="addPurchase()">הוסף</button>
-    </div>
-
-    <div id="purchaseList" class="list-panel"></div>
-  </section>
-
-  <!-- דוחות -->
-  <section id="reports" class="section" style="display:none;">
-    <h2>דוחות</h2>
-
-    <div class="form-panel panel">
-      <h3>סינון דוחות</h3>
-      <label>חודש:
-        <select id="reportMonth">
-          <option value="all">הכול</option>
-          <option value="1">ינואר</option>
-          <option value="2">פברואר</option>
-          <option value="3">מרץ</option>
-          <option value="4">אפריל</option>
-          <option value="5">מאי</option>
-          <option value="6">יוני</option>
-          <option value="7">יולי</option>
-          <option value="8">אוגוסט</option>
-          <option value="9">ספטמבר</option>
-          <option value="10">אוקטובר</option>
-          <option value="11">נובמבר</option>
-          <option value="12">דצמבר</option>
-        </select>
-      </label>
-      <label>שנה:
-        <input id="reportYear" type="number" placeholder="למשל 2025">
-      </label>
-      <label>סוג דוח:
-        <select id="reportType">
-          <option value="summary">סיכום הכנסות/הוצאות</option>
-          <option value="categories">סיכום לפי קטגוריות</option>
-          <option value="cashflow">תזרים מזומנים</option>
-        </select>
-      </label>
-      <button class="primary-btn" onclick="showReports()">הצג דוח</button>
-      <button class="secondary-btn" onclick="downloadCSV()">ייצוא CSV</button>
-      <button class="secondary-btn" onclick="downloadTXT()">ייצוא TXT</button>
-    </div>
-
-    <div id="reportContent" class="panel"></div>
-  </section>
-
-  <!-- קטגוריות -->
-  <section id="categories" class="section" style="display:none;">
-    <h2>ניהול קטגוריות</h2>
-
-    <div class="form-panel panel">
-      <input id="newCategoryName" type="text" placeholder="שם קטגוריה">
-      <button class="primary-btn" onclick="addCategory()">הוסף</button>
-    </div>
-
-    <div id="categoryManager" class="list-panel"></div>
-  </section>
-
-  <!-- משקי בית -->
-  <section id="households" class="section" style="display:none;">
-    <h2>משקי בית</h2>
-
-    <div class="form-panel panel">
-      <input id="newHouseholdName" type="text" placeholder="שם משק בית (למשל: משפחה, עסק ראשי)">
-      <button class="primary-btn" onclick="addHousehold()">הוסף משק בית</button>
-    </div>
-
-    <div class="panel">
-      <h3>בחירת משק בית פעיל</h3>
-      <select id="householdSelect" onchange="changeHousehold()"></select>
-    </div>
-
-    <div id="householdList" class="list-panel"></div>
-  </section>
-
-  <script src="app.js"></script>
 </body>
 </html>
