@@ -91,7 +91,30 @@
   </div>
 
   <div id="businessContent" class="content-panel"></div>
+  
+<!-- תבניות תוכן לחשבון עסק -->
+<template id="business-dashboard">
+  <h2>דשבורד עסק</h2>
+  <p>כאן יופיעו גרפים וסיכומים</p>
+</template>
 
+<template id="business-income">
+  <h2>הכנסות עסק</h2>
+  <input id="bizIncomeAmount" type="number" placeholder="סכום">
+  <input id="bizIncomeDesc" type="text" placeholder="תיאור">
+  <button onclick="saveBusinessIncome()">שמור</button>
+
+  <div id="bizIncomeList"></div>
+</template>
+
+<template id="business-expenses">
+  <h2>הוצאות עסק</h2>
+  <input id="bizExpenseAmount" type="number" placeholder="סכום">
+  <input id="bizExpenseDesc" type="text" placeholder="תיאור">
+  <button onclick="saveBusinessExpense()">שמור</button>
+
+  <div id="bizExpenseList"></div>
+</template>
   <button class="back-btn" onclick="showScreen('accountsScreen')">חזרה לחשבונות</button>
 </section>
 
