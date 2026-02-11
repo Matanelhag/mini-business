@@ -26,18 +26,48 @@
     <h1>מערכת ניהול עסק</h1>
     <nav>
       <button class="primary-btn" onclick="showSection('dashboard')">דשבורד</button>
-      <button class="primary-btn" onclick="showSection('expenses')">הוצאות</button>
       <button class="primary-btn" onclick="showSection('income')">הכנסות</button>
+      <button class="primary-btn" onclick="showSection('expenses')">הוצאות</button>
       <button class="primary-btn" onclick="showSection('inventory')">מלאי</button>
       <button class="primary-btn" onclick="showSection('purchases')">רכש</button>
       <button class="primary-btn" onclick="showSection('reports')">דוחות</button>
       <button class="primary-btn" onclick="showSection('categories')">קטגוריות</button>
+      <button class="secondary-btn" onclick="showSection('households')">משקי בית</button>
     </nav>
   </header>
 
   <!-- דשבורד -->
   <section id="dashboard" class="section">
     <h2>דשבורד</h2>
+
+    <div class="panel">
+      <h3>משק בית נוכחי</h3>
+      <p id="currentHouseholdLabel"></p>
+    </div>
+
+    <div class="form-panel panel">
+      <h3>סינון לפי חודש ושנה</h3>
+      <label>חודש:
+        <select id="dashboardMonth" onchange="updateDashboard()">
+          <option value="all">הכול</option>
+          <option value="1">ינואר</option>
+          <option value="2">פברואר</option>
+          <option value="3">מרץ</option>
+          <option value="4">אפריל</option>
+          <option value="5">מאי</option>
+          <option value="6">יוני</option>
+          <option value="7">יולי</option>
+          <option value="8">אוגוסט</option>
+          <option value="9">ספטמבר</option>
+          <option value="10">אוקטובר</option>
+          <option value="11">נובמבר</option>
+          <option value="12">דצמבר</option>
+        </select>
+      </label>
+      <label>שנה:
+        <input id="dashboardYear" type="number" placeholder="למשל 2025" onchange="updateDashboard()">
+      </label>
+    </div>
 
     <div class="cards">
       <div class="card panel">
@@ -56,10 +86,40 @@
       </div>
     </div>
 
-    <canvas id="incomeChart"></canvas>
-    <canvas id="expenseChart"></canvas>
-    <canvas id="categoryChart"></canvas>
-    <canvas id="subCategoryChart"></canvas>
+    <div class="panel">
+      <h3>גרף הכנסות</h3>
+      <canvas id="incomeChart"></canvas>
+    </div>
+
+    <div class="panel">
+      <h3>גרף הוצאות</h3>
+      <canvas id="expenseChart"></canvas>
+    </div>
+
+    <div class="panel">
+      <h3>סה״כ לפי קטגוריה</h3>
+      <canvas id="categoryChart"></canvas>
+    </div>
+
+    <div class="panel">
+      <h3>סה״כ לפי תת־קטגוריה</h3>
+      <canvas id="subCategoryChart"></canvas>
+    </div>
+  </section>
+
+  <!-- הכנסות -->
+  <section id="income" class="section" style="display:none;">
+    <h2>ניהול הכנסות</h2>
+
+    <div class="form-panel panel">
+      <input id="incomeAmount" type="number" placeholder="סכום">
+      <input id="incomeDesc" type="text" placeholder="תיאור">
+      <select id="incomeCategory"></select>
+      <select id="incomeSubCategory"></select>
+      <button class="primary-btn" onclick="saveIncome()">שמור</button>
+    </div>
+
+    <div id="incomeList" class="list-panel"></div>
   </section>
 
   <!-- הוצאות -->
@@ -123,9 +183,39 @@
   <section id="reports" class="section" style="display:none;">
     <h2>דוחות</h2>
 
-    <button class="primary-btn" onclick="showReports()">הצג דוחות</button>
-    <button class="secondary-btn" onclick="downloadCSV()">ייצוא CSV</button>
-    <button class="secondary-btn" onclick="downloadTXT()">ייצוא TXT</button>
+    <div class="form-panel panel">
+      <h3>סינון דוחות</h3>
+      <label>חודש:
+        <select id="reportMonth">
+          <option value="all">הכול</option>
+          <option value="1">ינואר</option>
+          <option value="2">פברואר</option>
+          <option value="3">מרץ</option>
+          <option value="4">אפריל</option>
+          <option value="5">מאי</option>
+          <option value="6">יוני</option>
+          <option value="7">יולי</option>
+          <option value="8">אוגוסט</option>
+          <option value="9">ספטמבר</option>
+          <option value="10">אוקטובר</option>
+          <option value="11">נובמבר</option>
+          <option value="12">דצמבר</option>
+        </select>
+      </label>
+      <label>שנה:
+        <input id="reportYear" type="number" placeholder="למשל 2025">
+      </label>
+      <label>סוג דוח:
+        <select id="reportType">
+          <option value="summary">סיכום הכנסות/הוצאות</option>
+          <option value="categories">סיכום לפי קטגוריות</option>
+          <option value="cashflow">תזרים מזומנים</option>
+        </select>
+      </label>
+      <button class="primary-btn" onclick="showReports()">הצג דוח</button>
+      <button class="secondary-btn" onclick="downloadCSV()">ייצוא CSV</button>
+      <button class="secondary-btn" onclick="downloadTXT()">ייצוא TXT</button>
+    </div>
 
     <div id="reportContent" class="panel"></div>
   </section>
@@ -142,17 +232,23 @@
     <div id="categoryManager" class="list-panel"></div>
   </section>
 
-  <script src="app.js"></script>
-  <section id="income" class="section" style="display:none;">
-  <h2>ניהול הכנסות</h2>
+  <!-- משקי בית -->
+  <section id="households" class="section" style="display:none;">
+    <h2>משקי בית</h2>
 
-  <div class="form-panel panel">
-    <input id="incomeAmount" type="number" placeholder="סכום">
-    <input id="incomeDesc" type="text" placeholder="תיאור">
-    <button class="primary-btn" onclick="saveIncome()">שמור</button>
-  </div>
+    <div class="form-panel panel">
+      <input id="newHouseholdName" type="text" placeholder="שם משק בית (למשל: משפחה, עסק ראשי)">
+      <button class="primary-btn" onclick="addHousehold()">הוסף משק בית</button>
+    </div>
 
-  <div id="incomeList" class="list-panel"></div>
+    <div class="panel">
+      <h3>בחירת משק בית פעיל</h3>
+      <select id="householdSelect" onchange="changeHousehold()"></select>
+    </div>
+
+    <div id="householdList" class="list-panel"></div>
   </section>
+
+  <script src="app.js"></script>
 </body>
 </html>
