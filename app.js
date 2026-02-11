@@ -34,6 +34,18 @@ function resetPassword() {
 function logoutUser() {
   auth.signOut().then(() => showScreen("loginScreen"));
 }
+function loadAccounts() {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  db.collection("users")
+    .doc(user.uid)
+    .collection("accounts")
+    .get()
+    .then(snapshot => {
+      console.log("חשבונות נטענו:", snapshot.size);
+    });
+}
 // ------------------------------------------------------
 // משקי בית (Households) + נתונים ראשוניים
 // ------------------------------------------------------
