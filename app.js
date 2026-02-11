@@ -89,6 +89,20 @@ function openAccount(type) {
     document.getElementById("investName").innerText = "חשבון השקעות";
   }
 }
+function openBusinessSection(section) {
+  const container = document.getElementById("businessContent");
+
+  const template = document.getElementById(`business-${section}`);
+  if (!template) {
+    container.innerHTML = "<p>לא נמצא תוכן</p>";
+    return;
+  }
+
+  container.innerHTML = template.innerHTML;
+
+  if (section === "income") loadBusinessIncome();
+  if (section === "expenses") loadBusinessExpenses();
+}
 // ------------------------------------------------------
 // משקי בית (Households) + נתונים ראשוניים
 // ------------------------------------------------------
