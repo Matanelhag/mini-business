@@ -142,6 +142,25 @@ function loadBusinessIncome() {
       });
     });
 }
+function saveBusinessExpense() {
+  const amount = Number(document.getElementById("bizExpenseAmount").value);
+  const desc = document.getElementById("bizExpenseDesc").value;
+
+  const user = auth.currentUser;
+  if (!user) return;
+
+  db.collection("users")
+    .doc(user.uid)
+    .collection("accounts")
+    .doc("business")
+    .collection("expenses")
+    .add({
+      amount,
+      desc,
+      date: new Date().toISOString()
+    })
+    .then(() => loadBusinessExpenses());
+}
 // ------------------------------------------------------
 // משקי בית (Households) + נתונים ראשוניים
 // ------------------------------------------------------
