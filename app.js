@@ -161,6 +161,26 @@ function saveBusinessExpense() {
     })
     .then(() => loadBusinessExpenses());
 }
+function loadBusinessExpenses() {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  db.collection("users")
+    .doc(user.uid)
+    .collection("accounts")
+    .doc("business")
+    .collection("expenses")
+    .get()
+    .then(snapshot => {
+      const list = document.getElementById("bizExpenseList");
+      list.innerHTML = "";
+
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        list.innerHTML += `<p>${data.desc} — ${data.amount} ₪</p>`;
+      });
+    });
+}
 // ------------------------------------------------------
 // משקי בית (Households) + נתונים ראשוניים
 // ------------------------------------------------------
