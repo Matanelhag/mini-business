@@ -120,7 +120,27 @@ function saveBusinessIncome() {
       desc,
       date: new Date().toISOString()
     })
-    .then(() => loadBusinessIncome());
+    .t²hen(() => loadBusinessIncome());
+}
+function loadBusinessIncome() {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  db.collection("users")
+    .doc(user.uid)
+    .collection("accounts")
+    .doc("business")
+    .collection("incomes")
+    .get()
+    .then(snapshot => {
+      const list = document.getElementById("bizIncomeList");
+      list.innerHTML = "";
+
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        list.innerHTML += `<p>${data.desc} — ${data.amount} ₪</p>`;
+      });
+    });
 }
 // ------------------------------------------------------
 // משקי בית (Households) + נתונים ראשוניים
