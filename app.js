@@ -46,6 +46,33 @@ function loadAccounts() {
       console.log("חשבונות נטענו:", snapshot.size);
     });
 }
+function createNewAccount() {
+  const name = prompt("שם החשבון:");
+  if (!name) return;
+
+  const type = prompt("סוג החשבון: business / home / investments");
+  if (!type) return;
+
+  const user = auth.currentUser;
+  if (!user) return alert("לא מחובר");
+
+  const accountId = Date.now().toString();
+
+  db.collection("users")
+    .doc(user.uid)
+    .collection("accounts")
+    .doc(accountId)
+    .set({
+      id: accountId,
+      name: name,
+      type: type,
+      createdAt: new Date().toISOString()
+    })
+    .then(() => {
+      alert("חשבון נוצר בהצלחה");
+      loadAccounts();
+    });
+}
 // ------------------------------------------------------
 // משקי בית (Households) + נתונים ראשוניים
 // ------------------------------------------------------
